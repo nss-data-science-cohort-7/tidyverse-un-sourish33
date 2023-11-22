@@ -5,6 +5,7 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 ```
+
 ```{r}
 gdp_df <- read_csv('./data/gdp_per_capita.csv')
 ```
@@ -120,5 +121,29 @@ ggplot(data = combined_data, aes(x = Year, y = GDP_Per_capita, color = Country))
 ```
 
 
+Read in continents.csv contained in the data folder into a new dataframe called continents. We will be using this dataframe to add a new column to our dataset.
+
+Merge gdp_df and continents. Keep only the countries that appear in both data frames. Save the result back to gdp_df.
+
+```{r}
+continents <- read_csv('./data/continents.csv')
+```
+
+```{r}
+continents |> head()
+```
+
+```{r}
+ gdp_df <- inner_join(gdp_df, continents, 
+           by = c("Country"))
+```
+
+Determine the number of countries per continent. Create a bar chart showing this.
+
+```{r}
+gdp_df |> 
+  group_by(Continent) |>
+  summarise(num_countries = n())
+```
 
 
