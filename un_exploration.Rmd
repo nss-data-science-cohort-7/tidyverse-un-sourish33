@@ -143,7 +143,97 @@ Determine the number of countries per continent. Create a bar chart showing this
 ```{r}
 gdp_df |> 
   group_by(Continent) |>
-  summarise(num_countries = n())
+  summarise(num_countries = n()) |>
+  ggplot(aes(x=Continent, y=num_countries)) +
+  geom_bar(stat="identity", fill="skyblue", color="black") +
+  labs(title ="Number of Countries in Each Continent", x="Continent", y="Number of Countries")
+```
+```{r}
+life_expectancy <- read_csv('./data/life_expectancy.csv',skip=4)
 ```
 
+```{r}
+life_expectancy <- select(life_expectancy, -c("Country Code", "Indicator Name", "Indicator Code"))
+
+life_expectancy <- life_expectancy |> rename(
+    Country = `Country Name`,
+  )
+life_expectancy |> head()
+```
+
+```{r}
+life_expectancy <- life_expectancy |>
+  pivot_longer(!Country, names_to = "Year", values_to = "Life_Expectancy")
+```
+```{r}
+life_expectancy |> 
+  filter(Life_Expectancy > 80) |>
+  arrange(Year)
+  
+```
+```{r}
+life_expectancy <- life_expectancy |> mutate(Year = as.numeric(Year))
+```
+
+
+
+```{r}
+gdp_le <-inner_join(gdp_df, life_expectancy, 
+           by = c("Country", "Year"))
+```
+
+
+
+```{r}
+gdp_le |> tail()
+```
+```{r}
+gdp_le_2019 <- gdp_le |> filter(Year == 2019)
+```
+
+```{r}
+gdp_le_2019 |> filter(Life_Expectancy >= 80) |>
+  summarize(Count = n())
+```
+
+```{r}
+gdp_le_2019 |> arrange(desc(GDP_Per_capita)) |> slice(1:3)
+```
+```{r}
+macao <- gdp_le |>
+  filter(Country == "Macao SAR, China") |>
+  ggplot(aes(x = Year, y = GDP_Per_capita)) +
+  geom_point() + geom_line()
+
+# Show the plot
+print(macao)
+```
+
+```{r}
+countries <- c("Macao SAR, China", "Luxembourg", "Singapore")
+filtered_data <- gdp_le |> filter(Country %in% countries)
+plot <- ggplot(data = filtered_data, aes(x= Year, y=GDP_Per_capita)) + geom_point() + facet_wrap(~Country, scales = "free")
+print(plot)
+```
+```{r}
+gdp_le_2019_cleaned <- na.omit(gdp_le_2019)
+correlation <- cor(gdp_le_2019_cleaned$GDP_Per_capita, gdp_le_2019_cleaned$Life_Expectancy)
+plot <- ggplot(data=gdp_le_2019_cleaned, aes(x=GDP_Per_capita, y=Life_Expectancy))+geom_point()+geom_text(x = Inf, y = -Inf, label = paste("Correlation:", round(correlation, 2)), 
+            hjust = 1, vjust = 0, size = 5, 
+            aes(label = paste("Corr:", round(correlation, 2))))
+print(plot)
+```
+```{r}
+gdp_le_2019 <- na.omit(gdp_le_2019)
+gdp_le_2019 <- gdp_le_2019 |> mutate(Log_GDP_Per_capita = log10(GDP_Per_capita))
+correlation <- cor(gdp_le_2019$Log_GDP_Per_capita, gdp_le_2019$Life_Expectancy)
+plot <- ggplot(data=gdp_le_2019, aes(x=Log_GDP_Per_capita, y=Life_Expectancy))+geom_point()+geom_text(x = Inf, y = -Inf, label = paste("Correlation:", round(correlation, 2)), 
+            hjust = 1, vjust = 0, size = 5, 
+            aes(label = paste("Corr:", round(correlation, 2))))
+print(plot)
+
+
+
+
+```
 
